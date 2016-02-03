@@ -2,10 +2,9 @@
 # Functions to run or stop quickly an LXD container
 # and mount it on host folder with clean rules
 
-LXD_SOURCE_DIR=/var/lib/lxd/containers
-LXD_MOUNT_DIR=/lxd
-USER_HOST_MOUNT=`id -u`
-GROUP_HOST_MOUNT=`id -g`
+PATHSCRIPT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+. $PATHSCRIPT/config.sh
 
 # Get the UID and the GID of the current user in the container (or root by default)
 _getUidGidLxd() {
