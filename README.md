@@ -1,5 +1,13 @@
 # lxd-functions
 
+This bash file allows you to create, delete, start and delete an LXD container.
+The goal is to mount the container with appropriate rights and ownership (with bindfs).
+After container started, you can work directly on the host machine, the current user is used in the mounted point and you have full access to it. In the container, a default user is used to map with the host user.
+
+## Dependencies
+
+  * `bindfs` : the bash package to make advanced mounted directory
+
 ## Installation
 
 Clone this repository in `/path/to/lxd-functions`
