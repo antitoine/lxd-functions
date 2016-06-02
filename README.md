@@ -6,7 +6,7 @@ After container started, you can work directly on the host machine, the current 
 
 ## Dependencies
 
-  * `bindfs` : the bash package to make advanced mounted directory
+  * `bindfs` : the bash package to make advanced mounted directory (in ubuntu `sudo apt-get install bindfs`)
 
 ## Installation
 
@@ -21,6 +21,8 @@ fi
 ```
 
 Edit the configuration file `/path/to/lxd-functions/config.sh`
+
+To allow bash-completion to work, you need to give read access of the `/var/lib/lxd/containers` like this : `sudo chmod ugo+r /var/lib/lxd/containers/`
 
 ## Commands
 
