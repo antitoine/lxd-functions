@@ -12,7 +12,7 @@ After container started, you can work directly on the host machine, the current 
 
 Clone this repository in `/path/to/lxd-functions`
 
-Add in the `.bashrc` file or `.profile` :
+Add in the `.bashrc` file (`/home/<me>/.bashrc`) or in the `.profile` :
 
 ```
 if [ -f /path/to/lxd-functions/main.sh ]; then
@@ -20,15 +20,37 @@ if [ -f /path/to/lxd-functions/main.sh ]; then
 fi
 ```
 
-Edit the configuration file `/path/to/lxd-functions/config.sh`
+Edit the configuration file `/path/to/lxd-functions/config.sh`, specialy check that :
 
-To allow bash-completion to work, you need to give read access of the `/var/lib/lxd/containers` like this : `sudo chmod ugo+r /var/lib/lxd/containers/`
+ * `LXD_SOURCE_DIR` need to match with the path of LXD containers in your system
+ * `LXD_MOUNT_DIR`, it's where containers will be mounted. The default value is `/lxd`, if you let that, you need to create a new directory like this `sudo mkdir /lxd`
+
+To allow bash-completion to work, you need to give read access of the `/var/lib/lxd/containers` like this :
+`sudo chmod ugo+r /var/lib/lxd/containers/`
+
+**No need to change an existing LXD container, this script use the LXD API without container modification !**
 
 ## Commands
 
 Commands available:
 
-  * `lxd-start` <container name> (Start an LXD container and mount it)
+  * `lxd-start <container name>` <container name> (Start an LXD container and mount it)
   * `lxd-stop <container name>` (Stop an LXD container and umount it)
   * `lxd-bindfs-mount <container name> <host user> <host group> <guest user> <guest group>` (Mount an LXD Container)
   * `lxd-bindfs-umount <container name>` (Umount an LXD Container)
+  * More soon (for example `lxd-create` ...)
+
+## Example of use
+
+In this example, you already have a LXD named `mylxd` (started or not, it doesn't matter) and you let the default configuration (in the `config.sh`).
+Before working with it, just enter this : `lxd-start mylxd`
+The script will start LXD container (with `lxc start mylxd`), then try to mount the container in this path : `/lxd/mylxd`, if the directory `mylxd` isn't already present, the script will ask if you agree to create it automatically.
+That's all ! You can try to create files directly in the container or in the mounted directory, the file created will have the current user uid/gid in the host and the default user in the container.
+
+The command `lxd-stop mylxd` is not required, but it will shutdown the lxd and unmount it for you.
+
+Others commands are not needed too, this is for advanced use.
+
+## Questions ? Want to involve ?
+
+Just ask in the issue section if it's not already done ;)
