@@ -20,7 +20,7 @@ if [ -f /path/to/lxd-functions/main.sh ]; then
 fi
 ```
 
-Edit the configuration file `/path/to/lxd-functions/config.sh`, specialy check that :
+Copy the example of configration file `/path/to/lxd-functions/config.sh.example` to `/path/to/lxd-functions/config.sh` and edit it, specially check that :
 
  * `LXD_SOURCE_DIR` need to match with the path of LXD containers in your system
  * `LXD_MOUNT_DIR`, it's where containers will be mounted. The default value is `/lxd`, if you let that, you need to create a new directory like this `sudo mkdir /lxd`
