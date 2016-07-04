@@ -44,7 +44,7 @@ Commands available:
 
 In this example, you already have a LXD named `mylxd` (started or not, it doesn't matter) and you let the default configuration (in the `config.sh`).
 Before working with it, just enter this : `lxd-start mylxd`
-The script will start LXD container (with `lxc start mylxd`), then try to mount the container in this path : `/lxd/mylxd`, if the directory `mylxd` isn't already present, the script will ask if you agree to create it automatically.
+The script will start LXD container (with `lxc start mylxd`), then try to mount the container in this path : `/var/lxd/mylxd`, if the directory `mylxd` isn't already present, the script will ask if you agree to create it automatically.
 That's all ! You can try to create files directly in the container or in the mounted directory, the file created will have the current user uid/gid in the host and the default user in the container.
 
 The command `lxd-stop mylxd` is not required, but it will shutdown the lxd and unmount it for you.
