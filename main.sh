@@ -2,7 +2,7 @@
 # Functions to run or stop quickly an LXD container
 # and mount it on host folder with clean rules
 
-if [ -n "`$SHELL -c 'echo $ZSH_VERSION'`" ]; then
+if ! type complete &>/dev/null; then
     autoload bashcompinit
     bashcompinit
 fi
@@ -11,7 +11,7 @@ PATH_SCRIPT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 . ${PATH_SCRIPT}/config.sh
 
-#POSIX confirm
+# POSIX confirm
 _confirm() {
 	echo -n $1 " (y/n)? "
 	old_stty_cfg=$(stty -g)
@@ -106,7 +106,7 @@ lxd-create() {
         echo "lxd-create <image name> <container name>"
         echo "To get the list of images availables : lxc image list <remote>"
     else
-        read "Do you wish to create the new container named $2 with the image $1 ? [Y/n] " yn
+        read -p "Do you wish to create the new container named $2 with the image $1 ? [Y/n] " yn
         case ${yn} in
             [Yy]* )
                 lxc launch $1 $2 && lxc exec $2 -- /usr/sbin/useradd $2 && lxc exec $2 -- /usr/sbin/passwd $2 && lxd-start $2 ;;
