@@ -1,10 +1,30 @@
-#! /bin/sh
+#!/bin/bash
 # Functions to run or stop quickly an LXD container
 # and mount it on host folder with clean rules
+
+if ! type complete &>/dev/null; then
+    autoload bashcompinit
+    bashcompinit
+fi
 
 PATH_SCRIPT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 . ${PATH_SCRIPT}/config.sh
+
+# POSIX confirm
+_confirm() {
+	echo -n $1 " (y/n)? "
+	old_stty_cfg=$(stty -g)
+	stty raw -echo
+	answer=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+	stty $old_stty_cfg
+	echo
+	if echo "$answer" | grep -iq "^y" ;then
+	    ${@:2}
+	else
+	    exit 1
+	fi
+}
 
 # Get the UID and the GID of the current user in the container (or root by default)
 _getUidGidLxd() {
@@ -49,7 +69,7 @@ lxd-stop() {
     if [ -z "$1" ]; then
         echo "lxd-stop <container name>"
     else
-        if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == 'Running' ]; then
+        if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Running' ]; then
             if lxc stop $1 --timeout 30; then
                 echo "LXD $1 stopped"
             else
@@ -68,18 +88,12 @@ lxd-start() {
     if [ -z "$1" ]; then
         echo "lxd-start <container name>"
     else
-        if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == 'Stopped' ]; then
+        if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Stopped' ]; then
             lxc start $1 && echo "LXD $1 started"
         fi
         if [ ! -d "${LXD_MOUNT_DIR}/$1" ]; then
             echo "No destination directory to mount the container : ${LXD_MOUNT_DIR}/$1"
-            read -p "Do you wish to create this directory ? [Y/n] " yn
-            case ${yn} in
-                [Yy]* )
-                    sudo mkdir ${LXD_MOUNT_DIR}/$1 ;;
-                * )
-                    return ;;
-            esac
+	    _confirm "Do you wish to create this directory ?" sudo mkdir -p ${LXD_MOUNT_DIR}/$1
         fi
     _getUidGidLxd $1 && \
         lxd-bindfs-mount $1 ${USER_HOST_MOUNT} ${GROUP_HOST_MOUNT} ${UID_GUEST_MOUNT} ${GID_GUEST_MOUNT}

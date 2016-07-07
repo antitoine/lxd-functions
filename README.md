@@ -23,7 +23,7 @@ fi
 Copy the example of configration file `/path/to/lxd-functions/config.sh.example` to `/path/to/lxd-functions/config.sh` and edit it, specially check that :
 
  * `LXD_SOURCE_DIR` need to match with the path of LXD containers in your system
- * `LXD_MOUNT_DIR`, it's where containers will be mounted. The default value is `/lxd`, if you let that, you need to create a new directory like this `sudo mkdir /lxd`
+ * `LXD_MOUNT_DIR`, it's where containers will be mounted. The default value is `/var/lxd`. It will be automaticaly created if you run the script.
 
 To allow bash-completion to work, you need to give read access of the `/var/lib/lxd/containers` like this :
 `sudo chmod ugo+r /var/lib/lxd/containers/`
