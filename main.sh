@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Functions to run or stop quickly an LXD container
 # and mount it on host folder with clean rules
 
@@ -7,7 +7,8 @@ if ! type complete &>/dev/null; then
     bashcompinit
 fi
 
-PATH_SCRIPT=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+PATH_SCRIPT=$(dirname ${BASH_SOURCE[0]-$0})
+PATH_SCRIPT=$(cd $PATH_SCRIPT && pwd)
 
 . ${PATH_SCRIPT}/config.sh
 
@@ -69,7 +70,7 @@ lxd-stop() {
     if [ -z "$1" ]; then
         echo "lxd-stop <container name>"
     else
-        if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Running' ]; then
+        if [[ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Running' ]]; then
             if lxc stop $1 --timeout 30; then
                 echo "LXD $1 stopped"
             else
@@ -88,7 +89,7 @@ lxd-start() {
     if [ -z "$1" ]; then
         echo "lxd-start <container name>"
     else
-        if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Stopped' ]; then
+        if [[ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Stopped' ]]; then
             lxc start $1 && echo "LXD $1 started"
         fi
         if [ ! -d "${LXD_MOUNT_DIR}/$1" ]; then
