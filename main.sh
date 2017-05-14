@@ -22,8 +22,9 @@ _confirm() {
 	echo
 	if echo "$answer" | grep -iq "^y" ;then
 	    ${@:2}
+            return 0
 	else
-	    exit 1
+	    return 1
 	fi
 }
 
@@ -92,12 +93,15 @@ lxd-start() {
         if [[ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Stopped' ]]; then
             lxc start $1 && echo "LXD $1 started"
         fi
+        MOUNT_RESULT=0
         if [ ! -d "${LXD_MOUNT_DIR}/$1" ]; then
             echo "No destination directory to mount the container : ${LXD_MOUNT_DIR}/$1"
 	    _confirm "Do you wish to create this directory ?" sudo mkdir -p ${LXD_MOUNT_DIR}/$1
+            MOUNT_RESULT=$?
         fi
-    _getUidGidLxd $1 && \
-        lxd-bindfs-mount $1 ${USER_HOST_MOUNT} ${GROUP_HOST_MOUNT} ${UID_GUEST_MOUNT} ${GID_GUEST_MOUNT}
+        if [ ${MOUNT_RESULT} -eq 0 ]; then
+		_getUidGidLxd $1 && lxd-bindfs-mount $1 ${USER_HOST_MOUNT} ${GROUP_HOST_MOUNT} ${UID_GUEST_MOUNT} ${GID_GUEST_MOUNT}
+	fi
     fi
 }
 
