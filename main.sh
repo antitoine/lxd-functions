@@ -56,7 +56,7 @@ _getUidGidLxd() {
 lxd-bindfs-umount() {
     if [ -z "$1" ]; then
         echo "lxd-bindfs-umount <container name>"
-    elif [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
+    elif [ -d "${LXD_MOUNT_DIR}/$1" ] && [ -x "${LXD_MOUNT_DIR}/$1" ] && [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
         sudo umount ${LXD_MOUNT_DIR}/$1 && echo "Umount done (in ${LXD_MOUNT_DIR}/$1)"
     fi
 }
@@ -65,6 +65,9 @@ lxd-bindfs-umount() {
 lxd-bindfs-mount() {
     if [ $# -ne 5 ]; then
         echo "lxd-bindfs-mount <container name> <host user> <host group> <guest user> <guest group>"
+    elif [ ! -d "${LXD_MOUNT_DIR}/$1" ] || [ ! -x "${LXD_MOUNT_DIR}/$1" ]; then
+        echo "Unable to access to the directory: ${LXD_MOUNT_DIR}/$1"
+        echo "Directory exist ?"
     elif [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
         echo "The mount directory is not empty : $LXD_MOUNT_DIR/$1"
         echo "Already mounted ?"
