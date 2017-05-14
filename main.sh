@@ -119,14 +119,14 @@ lxd-create() {
 
 _lxdListComplete()
 {
-    if [ -r ${LXD_SOURCE_DIR} ]; then
+    if [ -d "${LXD_SOURCE_DIR}" ] && [ -x "${LXD_SOURCE_DIR}" ]; then
         local cur=${COMP_WORDS[COMP_CWORD]}
         COMPREPLY=( $(compgen -W "$(cd ${LXD_SOURCE_DIR} && ls -d */ 2>/dev/null | tr '/\n' ' ' && printf '\n' )" -- ${cur}) )
     fi
 }
 _mountLxdListComplete()
 {
-    if [ -r ${LXD_MOUNT_DIR} ]; then
+    if [ -d "${LXD_MOUNT_DIR}" ] && [ -x "${LXD_MOUNT_DIR}" ]; then
         local cur=${COMP_WORDS[COMP_CWORD]}
         COMPREPLY=( $(compgen -W "$(cd ${LXD_MOUNT_DIR} && ls -d */ 2>/dev/null | tr '/\n' ' ' && printf '\n' )" -- ${cur}) )
     fi
