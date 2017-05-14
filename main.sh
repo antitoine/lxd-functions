@@ -69,17 +69,21 @@ lxd-stop() {
     if [ -z "$1" ]; then
         echo "lxd-stop <container name>"
     else
-        if [[ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` = 'Running' ]]; then
-            if lxc stop $1 --timeout 30; then
-                echo "LXD $1 stopped"
-            else
-                lxc stop $1 --force && echo "LXD $1 stopped, but forced!"
-            fi
-        fi
+        if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
+        	if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == 'Running' ]; then
+            		if lxc stop $1 --timeout 30; then
+                		echo "LXD $1 stopped"
+            		else
+                		lxc stop $1 --force && echo "LXD $1 stopped, but forced!"
+            		fi
+        	fi
 
-        if [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
-            lxd-bindfs-umount $1
-        fi
+        	if [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
+            		lxd-bindfs-umount $1
+        	fi
+         else
+                 echo "No container named $1 found"
+         fi
     fi
 }
 
