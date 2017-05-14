@@ -14,15 +14,15 @@ PATH_SCRIPT=$(cd $PATH_SCRIPT && pwd)
 
 # POSIX confirm
 _confirm() {
-	echo -n $1 " ? [y/n]"
-	old_stty_cfg=$(stty -g)
-	stty raw -echo
-	answer=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
-	stty $old_stty_cfg
-	echo
-	if echo "$answer" | grep -iq "^y" ;then
-	    ${@:2} && return 0
-	fi
+    echo -n $1 " ? [y/n]"
+    old_stty_cfg=$(stty -g)
+    stty raw -echo
+    answer=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+    stty $old_stty_cfg
+    echo
+    if echo "$answer" | grep -iq "^y" ;then
+        ${@:2} && return 0
+    fi
         return 1
 }
 
@@ -82,19 +82,19 @@ lxd-stop() {
         echo "lxd-stop <container name>"
     else
         if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
-        	if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == 'Running' ]; then
-            		if lxc stop $1 --timeout 30; then
-                		echo "LXD $1 stopped"
-            		else
-                		lxc stop $1 --force && echo "LXD $1 stopped, but forced!"
-            		fi
-        	fi
+            if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == 'Running' ]; then
+                if lxc stop $1 --timeout 30; then
+                    echo "LXD $1 stopped"
+                else
+                    lxc stop $1 --force && echo "LXD $1 stopped, but forced!"
+                fi
+            fi
 
-        	if [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
-            		lxd-bindfs-umount $1
-        	fi
+            if [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
+                lxd-bindfs-umount $1
+            fi
          else
-                 echo "No container named $1 found"
+            echo "No container named $1 found"
          fi
     fi
 }
@@ -105,21 +105,21 @@ lxd-start() {
         echo "lxd-start <container name>"
     else
         if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
-        	if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == "Stopped" ]; then
-            		lxc start $1 && echo "LXD $1 started"
-        	fi
-        	MOUNT_RESULT=0
-        	if [ ! -d "${LXD_MOUNT_DIR}/$1" ]; then
-            		echo "No destination directory to mount the container : ${LXD_MOUNT_DIR}/$1"
-	    		_confirm "Do you wish to create this directory" sudo mkdir -p ${LXD_MOUNT_DIR}/$1
-            		MOUNT_RESULT=$?
-        	fi
-        	if [ ${MOUNT_RESULT} -eq 0 ]; then
-			_getUidGidLxd $1 && lxd-bindfs-mount $1 ${USER_HOST_MOUNT} ${GROUP_HOST_MOUNT} ${UID_GUEST_MOUNT} ${GID_GUEST_MOUNT}
-		fi
-	else
-		echo "No container named $1 found"
-	fi
+            if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == "Stopped" ]; then
+                lxc start $1 && echo "LXD $1 started"
+            fi
+            MOUNT_RESULT=0
+            if [ ! -d "${LXD_MOUNT_DIR}/$1" ]; then
+                echo "No destination directory to mount the container : ${LXD_MOUNT_DIR}/$1"
+                _confirm "Do you wish to create this directory" sudo mkdir -p ${LXD_MOUNT_DIR}/$1
+                MOUNT_RESULT=$?
+            fi
+            if [ ${MOUNT_RESULT} -eq 0 ]; then
+                _getUidGidLxd $1 && lxd-bindfs-mount $1 ${USER_HOST_MOUNT} ${GROUP_HOST_MOUNT} ${UID_GUEST_MOUNT} ${GID_GUEST_MOUNT}
+            fi
+        else
+            echo "No container named $1 found"
+        fi
     fi
 }
 
