@@ -82,7 +82,7 @@ lxd-stop() {
         echo "lxd-stop <container name>"
     else
         if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
-            if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == 'Running' ]; then
+            if [ `lxc list --columns=s ^${1}$ | grep RUNNING | wc -l` -eq 1 ]; then
                 if lxc stop $1 --timeout 30; then
                     echo "LXD $1 stopped"
                 else
@@ -105,7 +105,7 @@ lxd-start() {
         echo "lxd-start <container name>"
     else
         if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
-            if [ `lxc info $1 | egrep -i "^Status: " | cut -d" " -f2` == "Stopped" ]; then
+            if [ `lxc list --columns=s ^${1}$ | grep STOPPED | wc -l` -eq 1 ]; then
                 lxc start $1 && echo "LXD $1 started"
             fi
             MOUNT_RESULT=0
