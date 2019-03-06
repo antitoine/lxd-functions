@@ -142,19 +142,26 @@ lxd-create() {
 _lxdListComplete()
 {
     if [ -d "${LXD_SOURCE_DIR}" ] && [ -x "${LXD_SOURCE_DIR}" ]; then
-        local cur opts
+        local cur opts prev
         cur="${COMP_WORDS[COMP_CWORD]}"
-        opts="$(find ${LXD_SOURCE_DIR} -mindepth 1 -maxdepth 1 -print0 | xargs -0 -n 1 basename)"
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        prev="${COMP_WORDS[COMP_CWORD-1]}"
+        opts="$(find ${LXD_SOURCE_DIR} -mindepth 1 -maxdepth 1 -print0 | xargs -r -0 -n 1 basename)"
+        if [ "${prev}" == "lxd-start" ] || [ "${prev}" == "lxd-bindfs-mount" ]; then
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        fi
     fi
 }
 _mountedLxdListComplete()
 {
     if [ -d "${LXD_MOUNT_DIR}" ] && [ -x "${LXD_MOUNT_DIR}" ]; then
-        local cur opts
+        local cur opts prev
         cur="${COMP_WORDS[COMP_CWORD]}"
-        opts="$(find ${LXD_MOUNT_DIR} -mindepth 1 -maxdepth 1 -not -empty -type d -print0 | xargs -0 -n 1 basename)"
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        prev="${COMP_WORDS[COMP_CWORD-1]}"
+        cur="${COMP_WORDS[COMP_CWORD]}"
+        opts="$(find ${LXD_MOUNT_DIR} -mindepth 1 -maxdepth 1 -not -empty -type d -print0 | xargs -r -0 -n 1 basename)"
+        if [ "${prev}" == "lxd-stop" ] || [ "${prev}" == "lxd-bindfs-umount" ]; then
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        fi
     fi
 }
 complete -F _lxdListComplete lxd-start
