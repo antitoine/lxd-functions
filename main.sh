@@ -153,7 +153,7 @@ _mountedLxdListComplete()
     if [ -d "${LXD_MOUNT_DIR}" ] && [ -x "${LXD_MOUNT_DIR}" ]; then
         local cur opts
         cur="${COMP_WORDS[COMP_CWORD]}"
-        opts="$(find ${LXD_MOUNT_DIR} -mindepth 1 -maxdepth 1 -not -empty -type d -print0 | xargs -0 basename)"
+        opts="$(find ${LXD_MOUNT_DIR} -mindepth 1 -maxdepth 1 -not -empty -type d -print0 | xargs -0 -n 1 basename)"
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     fi
 }
