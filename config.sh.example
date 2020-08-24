@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 LXD_SOURCE_DIR=/var/lib/lxd/containers
+LXD_SOURCE_DIR_SNAP=$(command -v snap > /dev/null 2>&1 && [ -d /var/snap/lxd ] && readlink /var/snap/lxd/common/mntns | awk '{print $1"/var/snap/lxd/common/lxd/storage-pools/default/containers"}')
 LXD_MOUNT_DIR=/var/lxd
 USER_HOST_MOUNT=`id -u`
 GROUP_HOST_MOUNT=`id -g`
