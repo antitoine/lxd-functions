@@ -4,3 +4,5 @@ LXD_SOURCE_DIR=/var/lib/lxd/containers
 LXD_MOUNT_DIR=/var/lxd
 USER_HOST_MOUNT=`id -u`
 GROUP_HOST_MOUNT=`id -g`
+ASK_MAPPING_USER=false
+MAPPING_USERS=("$USER" "CONTAINER" ubuntu)
