@@ -29,20 +29,35 @@ _confirm() {
 # Get the UID and the GID of the current user in the container (or root by default)
 _getUidGidLxd() {
     if [ -d "${LXD_SOURCE_DIR}/$1/rootfs" ] && [ -x "${LXD_SOURCE_DIR}/$1/rootfs" ]; then
-        if [ -d "${LXD_SOURCE_DIR}/$1/rootfs/home/$1" ]; then
-            echo "The user $1 was found and will be used to make the uig/gid mapping."
-            UID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/home/$1 | awk '{print $3}'`
-            GID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/home/$1 | awk '{print $4}'`
-        elif [ -d "$LXD_SOURCE_DIR/$1/rootfs/home/ubuntu" ]; then
-            echo "The user ubuntu was found and will be used to make the uig/gid mapping."
-            UID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/home/ubuntu | awk '{print $3}'`
-            GID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/home/ubuntu | awk '{print $4}'`
-        elif [ -d "$LXD_SOURCE_DIR/$1/rootfs/root" ]; then
-            echo "No unprivileged user was found, therefore the mapping will use the root user."
+        DEFAULT_USER="root"
+        for mappingUser in "${MAPPING_USERS[@]}"; do
+            if [ "${mappingUser}" = "CONTAINER" ] && [ -d "${LXD_SOURCE_DIR}/$1/rootfs/home/$1" ]; then
+                DEFAULT_USER=$1
+            elif [ -d "${LXD_SOURCE_DIR}/$1/rootfs/home/${mappingUser}" ]; then
+                DEFAULT_USER=$mappingUser
+            fi
+        done
+        MAPPING_USER=$DEFAULT_USER
+
+        if [ "${ASK_MAPPING_USER}" = "true" ]; then
+            echo -n "User in container to make uig/gid mapping [${DEFAULT_USER}]: "
+            read INPUT_USER
+            if [ "$INPUT_USER" = "" ]; then
+                INPUT_USER=$DEFAULT_USER
+            fi
+            MAPPING_USER=$INPUT_USER
+        fi
+
+        if [ "${MAPPING_USER}" != 'root' ] && [ -d "${LXD_SOURCE_DIR}/$1/rootfs/home/${MAPPING_USER}" ]; then
+            echo "The user $MAPPING_USER was found and will be used to make the uig/gid mapping."
+            UID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/home/${MAPPING_USER} | awk '{print $3}'`
+            GID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/home/${MAPPING_USER} | awk '{print $4}'`
+        elif [ "${MAPPING_USER}" = 'root' ] && [ -d "${LXD_SOURCE_DIR}/$1/rootfs/root" ]; then
+            echo "The root user will bed used to make the uig/gid mapping."
             UID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/root | awk '{print $3}'`
             GID_GUEST_MOUNT=`ls -ldn ${LXD_SOURCE_DIR}/$1/rootfs/root | awk '{print $4}'`
         else
-            echo "Unable to found a user in the container (${1}, ubuntu or root)"
+            echo "Unable found the user $MAPPING_USER in the container"
             return 1
         fi
         return 0
