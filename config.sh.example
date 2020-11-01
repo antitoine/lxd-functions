@@ -1,8 +1,26 @@
 #!/usr/bin/env bash
 
-LXD_SOURCE_DIR=/var/lib/lxd/containers
+# Path to the LXD containers, choose the right path matching the LXD installation.
+# With Ubuntu > 18.04, the default installation use snap and match this path:
+LXD_SOURCE_DIR=/var/snap/lxd/common/lxd/containers
+# Older version of Ubuntu <= 18.04, use native package, and match this path:
+#LXD_SOURCE_DIR=/var/lib/lxd/containers
+
+# The path where LXD containers will be mounted:
 LXD_MOUNT_DIR=/var/lxd
+
+# The user ID used for files permissions in the mounted container:
 USER_HOST_MOUNT=`id -u`
+
+# The group ID used for files permissions in the mounted container:
 GROUP_HOST_MOUNT=`id -g`
+
+# If true, instead of using the mapping users rule, the user you want to use in the container will be prompted:
 ASK_MAPPING_USER=false
+
+# Rule to follow to get a valid user in the container, left to right.
+# The special user "CONTAINER" match the container name:
 MAPPING_USERS=("$USER" "CONTAINER" ubuntu)
+
+# If true, when mounting the container, if there is missing rights, the script will ask before apply change on right
+ASK_CHANGE_CONTAINER_RIGHTS=false

@@ -23,11 +23,42 @@ _confirm() {
     if echo "$answer" | grep -iq "^y" ;then
         ${@:2} && return 0
     fi
+    return 1
+}
+
+_checkRights() {
+    if [ "$EUID" -eq 0 ]
+        then echo "Please run this function without root privileges. The sudo command will be used when required root access. The LXD API need to be run with your current user." >&2
         return 1
+    fi
+    if ! command -v sudo &> /dev/null ; then
+        echo "The sudo command is missing, and this is a required dependency for accessing root privileges when needed." >&2
+        return 1
+    fi
+    return 0
+}
+
+_checkBindfs() {
+    if ! command -v bindfs &> /dev/null ; then
+        echo "The bindfs command is missing, and this is a required dependency for mounting the container." >&2
+        echo "You can install this dependency on ubuntu/debian like this: sudo apt-get install bindfs" >&2
+        return 1
+    fi
+    return 0
 }
 
 # Get the UID and the GID of the current user in the container (or root by default)
 _getUidGidLxd() {
+    if [ -d "${LXD_SOURCE_DIR}/$1" ] && [ ! -x "${LXD_SOURCE_DIR}/$1" ]; then
+        if [ "${ASK_CHANGE_CONTAINER_RIGHTS}" = "true" ]; then
+            echo "The container path is not accessible (this is normal, if LXD is installed via snap): ${LXD_SOURCE_DIR}/$1"
+            _confirm "Do you wish to add access right (x) this directory (required to proceed)" sudo chmod go+x ${LXD_SOURCE_DIR}/$1
+        else
+          echo "Give access to container path: ${LXD_SOURCE_DIR}/$1"
+          sudo chmod go+x ${LXD_SOURCE_DIR}/$1
+        fi
+    fi
+
     if [ -d "${LXD_SOURCE_DIR}/$1/rootfs" ] && [ -x "${LXD_SOURCE_DIR}/$1/rootfs" ]; then
         DEFAULT_USER="root"
         for mappingUser in "${MAPPING_USERS[@]}"; do
@@ -62,15 +93,16 @@ _getUidGidLxd() {
         fi
         return 0
     else
-        echo "Unable to access to the rootfs of the container: ${LXD_SOURCE_DIR}/$1/rootfs"
+        echo "Unable to access to the rootfs of the container: ${LXD_SOURCE_DIR}/$1/rootfs" >&2
         return 1
     fi
 }
 
-# Umount with bindfs a container 
+# Umount a container
 lxd-bindfs-umount() {
+    _checkRights || return 1
     if [ -z "$1" ]; then
-        echo "lxd-bindfs-umount <container name>"
+        echo "lxd-bindfs-umount <container name>" >&2
     elif [ -d "${LXD_MOUNT_DIR}/$1" ] && [ -x "${LXD_MOUNT_DIR}/$1" ] && [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
         sudo umount ${LXD_MOUNT_DIR}/$1 && echo "Umount done (in ${LXD_MOUNT_DIR}/$1)"
     fi
@@ -78,14 +110,16 @@ lxd-bindfs-umount() {
 
 # Mount with bindfs a container 
 lxd-bindfs-mount() {
+    _checkRights || return 1
+    _checkBindfs || return 1
     if [ $# -ne 5 ]; then
         echo "lxd-bindfs-mount <container name> <host user> <host group> <guest user> <guest group>"
     elif [ ! -d "${LXD_MOUNT_DIR}/$1" ] || [ ! -x "${LXD_MOUNT_DIR}/$1" ]; then
-        echo "Unable to access to the directory: ${LXD_MOUNT_DIR}/$1"
-        echo "Directory exist ?"
+        echo "Unable to access to the directory: ${LXD_MOUNT_DIR}/$1" >&2
+        echo "Directory exist ?" >&2
     elif [ "$(ls -A ${LXD_MOUNT_DIR}/$1 )" ]; then
-        echo "The mount directory is not empty : $LXD_MOUNT_DIR/$1"
-        echo "Already mounted ?"
+        echo "The mount directory is not empty : $LXD_MOUNT_DIR/$1" >&2
+        echo "Already mounted ?" >&2
     else
         sudo bindfs --force-user=$2 --force-group=$3 --create-for-user=$4 --create-for-group=$5 ${LXD_SOURCE_DIR}/$1/rootfs ${LXD_MOUNT_DIR}/$1 && echo "Mount done (in ${LXD_MOUNT_DIR}/$1)"
     fi
@@ -93,8 +127,9 @@ lxd-bindfs-mount() {
 
 # Start a container and mount it
 lxd-stop() {
+    _checkRights || return 1
     if [ -z "$1" ]; then
-        echo "lxd-stop <container name>"
+        echo "lxd-stop <container name>" >&2
     else
         if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
             if [ `lxc list --columns=s ^${1}$ | grep RUNNING | wc -l` -eq 1 ]; then
@@ -109,15 +144,16 @@ lxd-stop() {
                 lxd-bindfs-umount $1
             fi
          else
-            echo "No container named $1 found"
+            echo "No container named $1 found" >&2
          fi
     fi
 }
 
 # Stop a container and umount it
 lxd-start() {
+    _checkRights || return 1
     if [ -z "$1" ]; then
-        echo "lxd-start <container name>"
+        echo "lxd-start <container name>" >&2
     else
         if [ `lxc list --columns=n ^${1}$ | wc -l` -eq 5 ]; then
             if [ `lxc list --columns=s ^${1}$ | grep STOPPED | wc -l` -eq 1 ]; then
@@ -131,15 +167,18 @@ lxd-start() {
             fi
             if [ ${MOUNT_RESULT} -eq 0 ]; then
                 _getUidGidLxd $1 && lxd-bindfs-mount $1 ${USER_HOST_MOUNT} ${GROUP_HOST_MOUNT} ${UID_GUEST_MOUNT} ${GID_GUEST_MOUNT}
+            else
+              echo "Unable to mount the container, the destination directory is missing" >&2
             fi
         else
-            echo "No container named $1 found"
+            echo "No container named $1 found" >&2
         fi
     fi
 }
 
 # Create the default LXD container with a current user
 lxd-create() {
+    _checkRights || return 1
     if [ $# -ne 2 ]; then
         echo "lxd-create <image name> <container name>"
         echo "To get the list of images availables : lxc image list <remote>"
@@ -154,8 +193,14 @@ lxd-create() {
     fi
 }
 
-_lxdListComplete()
-{
+# Add read access for bash completion on the container directory
+lxd-bash-completion() {
+  _checkRights || return 1
+  echo "Give read access to container path: ${LXD_SOURCE_DIR}/$1"
+  sudo chmod ugo+r "${LXD_SOURCE_DIR}/$1"
+}
+
+_lxdListComplete() {
     if [ -d "${LXD_SOURCE_DIR}" ] && [ -x "${LXD_SOURCE_DIR}" ]; then
         local cur opts prev
         cur="${COMP_WORDS[COMP_CWORD]}"
@@ -166,8 +211,8 @@ _lxdListComplete()
         fi
     fi
 }
-_mountedLxdListComplete()
-{
+
+_mountedLxdListComplete() {
     if [ -d "${LXD_MOUNT_DIR}" ] && [ -x "${LXD_MOUNT_DIR}" ]; then
         local cur opts prev
         cur="${COMP_WORDS[COMP_CWORD]}"
