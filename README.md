@@ -18,6 +18,7 @@ Add in the `.bashrc` file (`/home/<me>/.bashrc`) or in the `.profile` :
 ```
 if [ -f /path/to/lxd-functions/main.sh ]; then
   . /path/to/lxd-functions/main.sh
+  lxd-bash-completion >/dev/null
 fi
 ```
 
