@@ -64,8 +64,10 @@ _getUidGidLxd() {
         for mappingUser in "${MAPPING_USERS[@]}"; do
             if [ "${mappingUser}" = "CONTAINER" ] && [ -d "${LXD_SOURCE_DIR}/$1/rootfs/home/$1" ]; then
                 DEFAULT_USER=$1
+                break
             elif [ -d "${LXD_SOURCE_DIR}/$1/rootfs/home/${mappingUser}" ]; then
                 DEFAULT_USER=$mappingUser
+                break
             fi
         done
         MAPPING_USER=$DEFAULT_USER
@@ -125,7 +127,7 @@ lxd-bindfs-mount() {
     fi
 }
 
-# Start a container and mount it
+# Stop a container and umount it
 lxd-stop() {
     _checkRights || return 1
     if [ -z "$1" ]; then
@@ -149,7 +151,7 @@ lxd-stop() {
     fi
 }
 
-# Stop a container and umount it
+# Start a container and mount it
 lxd-start() {
     _checkRights || return 1
     if [ -z "$1" ]; then
