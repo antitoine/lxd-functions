@@ -195,23 +195,14 @@ lxd-create() {
     fi
 }
 
-# Add read access for bash completion on the container directory
-lxd-bash-completion() {
-  _checkRights || return 1
-  echo "Give read access to container path: ${LXD_SOURCE_DIR}/$1"
-  sudo chmod ugo+r "${LXD_SOURCE_DIR}/$1"
-}
-
 _lxdListComplete() {
-    if [ -d "${LXD_SOURCE_DIR}" ] && [ -x "${LXD_SOURCE_DIR}" ]; then
-        local cur opts prev
-        cur="${COMP_WORDS[COMP_CWORD]}"
-        prev="${COMP_WORDS[COMP_CWORD-1]}"
-        opts="$(find ${LXD_SOURCE_DIR} -mindepth 1 -maxdepth 1 -print0 | xargs -r -0 -n 1 basename)"
-        if [ "${prev}" == "lxd-start" ] || [ "${prev}" == "lxd-bindfs-mount" ]; then
-            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-        fi
-    fi
+   local cur opts prev
+   cur="${COMP_WORDS[COMP_CWORD]}"
+   prev="${COMP_WORDS[COMP_CWORD-1]}"
+   opts="$(lxc list --format=csv --columns=n)"
+   if [ "${prev}" == "lxd-start" ] || [ "${prev}" == "lxd-bindfs-mount" ]; then
+       COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+   fi
 }
 
 _mountedLxdListComplete() {

@@ -18,7 +18,6 @@ Add in the `.bashrc` file (`/home/<me>/.bashrc`) or in the `.profile` :
 ```
 if [ -f /path/to/lxd-functions/main.sh ]; then
   . /path/to/lxd-functions/main.sh
-  lxd-bash-completion >/dev/null
 fi
 ```
 
@@ -26,8 +25,6 @@ Copy the example of configration file `/path/to/lxd-functions/config.sh.example`
 
  * `LXD_SOURCE_DIR` need to match with the path of LXD containers in your system
  * `LXD_MOUNT_DIR` it's where containers will be mounted. The default value is `/var/lxd`. It will be automatically created if you run the script.
-
-To allow bash-completion to work, you need to give read access of the `LXD_SOURCE_DIR`. To automatically add read access, run the following command: `lxd-bash-completion`
 
 **No need to change an existing LXD container, this script use the LXD API without container modification !**
 
